@@ -20,13 +20,13 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9 # Matches modern pnpm versions
+          version: 9
 
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          # Cache is removed to prevent "lock file not found" errors
 
       - name: Install dependencies
         run: pnpm install
@@ -34,14 +34,12 @@ jobs:
       - name: Build
         run: pnpm run build
         env:
-          # This ensures the site works at iyounic.com/
           BASE_PATH: "/" 
           PORT: 5173
 
       - name: Upload Artifacts
         uses: actions/upload-pages-artifact@v3
         with:
-          # This must match your 'outDir' in vite.config.js
           path: dist
 
   deploy_site:
