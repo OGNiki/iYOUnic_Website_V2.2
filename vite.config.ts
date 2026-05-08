@@ -4,36 +4,22 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT;
+// GitHub Pages needs a port during build, but doesn't use it for serving.
+// We'll default to 5173 if the environment variable is missing.
+const port = Number(process.env.PORT) || 5173;
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
-
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
-}
+// For GitHub Pages, this should be your repo name: '/iYOUnic_Website_V2.2/'
+// We use a fallback so it doesn't crash during local builds.
+const basePath = process.env.BASE_PATH || '/iYOUnic_Website_V2.2/';
 
 export default defineConfig({
   base: basePath,
   plugins: [
     react(),
     tailwindcss(),
-    runtimeErrorOverlay(),
-    ...(process.env.NODE_ENV !== "production" &&
-    process.env.REPL_ID !== undefined
+    // Only run the Replit error overlay in development
+    process.env.NODE_ENV !== "production" && runtimeErrorOverlay(),
+    ...(process.env.NODE_ENV !== "production" && process.env.REPL_ID !== undefined
       ? [
           await import("@replit/vite-plugin-cartographer").then((m) =>
             m.cartographer({
@@ -45,7 +31,7 @@ export default defineConfig({
           ),
         ]
       : []),
-  ],
+  ].filter(Boolean), // Filters out the false/undefined plugins
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "src"),
@@ -55,20 +41,13 @@ export default defineConfig({
   },
   root: path.resolve(import.meta.dirname),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    // Changing this to just 'dist' makes deployment much easier
+    outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
   },
   server: {
     port,
     strictPort: true,
-    host: "0.0.0.0",
-    allowedHosts: true,
-    fs: {
-      strict: true,
-    },
-  },
-  preview: {
-    port,
     host: "0.0.0.0",
     allowedHosts: true,
   },
